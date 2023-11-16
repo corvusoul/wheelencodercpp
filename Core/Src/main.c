@@ -141,7 +141,7 @@ int main(void)
   /* USER CODE BEGIN 2 */
   HAL_TIM_Base_Start_IT(&htim2);
 
-  char uart_buf[100];
+  char uart_buf[100];//lingesh is gae
   int uart_buf_len;
   /* USER CODE END 2 */
 
