@@ -22,6 +22,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include <stdio.h>
+#include <mainpp.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -43,6 +44,8 @@
 TIM_HandleTypeDef htim2;
 
 UART_HandleTypeDef huart2;
+DMA_HandleTypeDef hdma_usart2_rx;
+DMA_HandleTypeDef hdma_usart2_tx;
 
 /* USER CODE BEGIN PV */
 
@@ -51,6 +54,7 @@ UART_HandleTypeDef huart2;
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
+static void MX_DMA_Init(void);
 static void MX_USART2_UART_Init(void);
 static void MX_TIM2_Init(void);
 /* USER CODE BEGIN PFP */
@@ -60,43 +64,10 @@ static void MX_TIM2_Init(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
-int leftenc = 0, leftenco = 0, rightenc = 0, rightenco = 0;
-int flag = 0, rightvel = 0, rpm = 0;
 
 
 
-void HAL_GPIO_EXTI_Callback(uint16_t GPIO_PIN)
-{
-	if(GPIO_PIN == LeftEncoderA_Pin)
-	{
-		if(HAL_GPIO_ReadPin(LeftEncoderA_GPIO_Port, LeftEncoderA_Pin) == 1)
-		{
-			if(HAL_GPIO_ReadPin(GPIOA, LeftEncoderB_Pin) == 1) leftenc++;
-			else if(HAL_GPIO_ReadPin(GPIOA, LeftEncoderB_Pin) == 0) leftenc--;
-		}
-		else if(HAL_GPIO_ReadPin(LeftEncoderA_GPIO_Port, LeftEncoderA_Pin) == 0)
-		{
-			if(HAL_GPIO_ReadPin(GPIOA, LeftEncoderB_Pin) == 0) leftenc++;
-			else if(HAL_GPIO_ReadPin(GPIOA, LeftEncoderB_Pin) == 1) leftenc--;
-		}
-	}
-	else if(GPIO_PIN == RightEncoderA_Pin)
-	{
-		if(HAL_GPIO_ReadPin(RightEncoderA_GPIO_Port, RightEncoderA_Pin) == 1)
-		{
-			if(HAL_GPIO_ReadPin(GPIOB, RightEncoderB_Pin) == 0) rightenc++;
-			else if(HAL_GPIO_ReadPin(GPIOB, RightEncoderB_Pin) == 1) rightenc--;
-		}
-		else if(HAL_GPIO_ReadPin(RightEncoderA_GPIO_Port, RightEncoderA_Pin) == 0)
-		{
-			if(HAL_GPIO_ReadPin(GPIOB, RightEncoderB_Pin) == 1) rightenc++;
-			else if(HAL_GPIO_ReadPin(GPIOB, RightEncoderB_Pin) == 0) rightenc--;
-		}
-	}
-	flag = 1;
-}
-
-
+/*
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
 
@@ -105,7 +76,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 	rightenco = rightenc;
 	HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
 
-}
+}*/
 /* USER CODE END 0 */
 
 /**
@@ -136,28 +107,30 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_DMA_Init();
   MX_USART2_UART_Init();
   MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
   HAL_TIM_Base_Start_IT(&htim2);
+  setup();
 
-  char uart_buf[100];//lingesh is gae
-  int uart_buf_len;
+    /*char uart_buf[100];//lingesh is gae
+    int uart_buf_len;*/
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  if(flag == 1)
-	  {
-		  uart_buf_len = sprintf(uart_buf, "Left Encoder Ticks: %d Right Encoder Ticks: %d "
-				  "RPM: %d Right Wheel Velocity: %d\r \n", leftenc, rightenc, rpm, rightvel);
-		  HAL_UART_Transmit(&huart2, (uint8_t *)uart_buf, uart_buf_len, 100);
-		  flag = 0;
-	  }
     /* USER CODE END WHILE */
-
+	  loop();
+	  /*if(flag == 1)
+	  	  {
+	  		  uart_buf_len = sprintf(uart_buf, "Left Encoder Ticks: %d Right Encoder Ticks: %d "
+	  				  "RPM: %d Right Wheel Velocity: %d\r \n", leftenc, rightenc, rpm, rightvel);
+	  		  HAL_UART_Transmit(&huart2, (uint8_t *)uart_buf, uart_buf_len, 100);
+	  		  flag = 0;
+	  	  }*/
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
@@ -201,7 +174,7 @@ void SystemClock_Config(void)
   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
-  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV2;
+  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
 
   if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK)
   {
@@ -270,7 +243,7 @@ static void MX_USART2_UART_Init(void)
 
   /* USER CODE END USART2_Init 1 */
   huart2.Instance = USART2;
-  huart2.Init.BaudRate = 115200;
+  huart2.Init.BaudRate = 57600;
   huart2.Init.WordLength = UART_WORDLENGTH_8B;
   huart2.Init.StopBits = UART_STOPBITS_1;
   huart2.Init.Parity = UART_PARITY_NONE;
@@ -284,6 +257,25 @@ static void MX_USART2_UART_Init(void)
   /* USER CODE BEGIN USART2_Init 2 */
 
   /* USER CODE END USART2_Init 2 */
+
+}
+
+/**
+  * Enable DMA controller clock
+  */
+static void MX_DMA_Init(void)
+{
+
+  /* DMA controller clock enable */
+  __HAL_RCC_DMA1_CLK_ENABLE();
+
+  /* DMA interrupt init */
+  /* DMA1_Stream5_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Stream5_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Stream5_IRQn);
+  /* DMA1_Stream6_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Stream6_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Stream6_IRQn);
 
 }
 
@@ -303,6 +295,16 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
   __HAL_RCC_GPIOC_CLK_ENABLE();
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin : PA5 */
+  GPIO_InitStruct.Pin = GPIO_PIN_5;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
   /*Configure GPIO pin : LeftEncoderA_Pin */
   GPIO_InitStruct.Pin = LeftEncoderA_Pin;
