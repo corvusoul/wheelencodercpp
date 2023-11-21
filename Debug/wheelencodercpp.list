@@ -4707,6 +4707,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_PIN)
  8002538:	200001c8 	.word	0x200001c8
 
 0800253c <HAL_UART_TxCpltCallback>:
+
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart){
  800253c:	b580      	push	{r7, lr}
  800253e:	b082      	sub	sp, #8
@@ -4782,8 +4783,8 @@ void loop()
 	nh.spinOnce();
  80025b8:	4803      	ldr	r0, [pc, #12]	; (80025c8 <loop+0x18>)
  80025ba:	f000 f8a5 	bl	8002708 <_ZN3ros11NodeHandle_I13STM32HardwareLi25ELi25ELi512ELi512EE8spinOnceEv>
-	HAL_Delay(10);
- 80025be:	200a      	movs	r0, #10
+	HAL_Delay(200);
+ 80025be:	20c8      	movs	r0, #200	; 0xc8
  80025c0:	f000 ff84 	bl	80034cc <HAL_Delay>
 }
  80025c4:	bf00      	nop

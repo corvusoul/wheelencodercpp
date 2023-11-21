@@ -78,6 +78,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_PIN)
 	}
 	flag = 1;
 }
+
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart){
   nh.getHardware()->flush();
 }
@@ -96,5 +97,5 @@ void loop()
 {
 	publishPos();
 	nh.spinOnce();
-	HAL_Delay(10);
+	HAL_Delay(200);
 }
