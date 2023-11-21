@@ -20,6 +20,16 @@ int flag = 0;
  int leftenc = 0, leftenco = 0, rightenc = 0, rightenco = 0;
  int pos_act_left = 0, pos_act_right = 0;
  int rightvel = 0, rpm = 0;
+ float demandx=0;
+ float demandz=0;
+ float temp = 0.0;
+ double demand_speed_left;
+ double demand_speed_right;
+
+ void cmd_vel_cb( const geometry_msgs::Twist& twist){
+   demandx = twist.linear.x;
+   demandz = twist.angular.z;
+ }
 
 
 ros::NodeHandle nh;
@@ -28,6 +38,8 @@ ros::Publisher left_wheel_pub("lwheel", &left_wheel_msg);
 std_msgs::Int16 right_wheel_msg;
 ros::Publisher right_wheel_pub("rwheel", &right_wheel_msg);
 
+ros::Subscriber<geometry_msgs::Twist> sub("cmd_vel", cmd_vel_cb );
+
 void publishPos()
 {
   left_wheel_msg.data = pos_act_left;
@@ -35,6 +47,8 @@ void publishPos()
   left_wheel_pub.publish(&left_wheel_msg);
   right_wheel_pub.publish(&right_wheel_msg);
 }
+
+
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
@@ -92,10 +106,15 @@ void setup()
 	nh.initNode();
 	nh.advertise(left_wheel_pub);
 	nh.advertise(right_wheel_pub);
+	nh.subscribe(sub);
+
 }
 void loop()
 {
 	publishPos();
 	nh.spinOnce();
-	HAL_Delay(200);
+
+	demand_speed_left = demandx - (demandz*temp);
+	demand_speed_right = demandx + (demandz*temp);
+	HAL_Delay(10);
 }
