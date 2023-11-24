@@ -108,6 +108,7 @@ void setup()
 	nh.advertise(right_wheel_pub);
 	nh.subscribe(sub);
 
+
 }
 void loop()
 {
@@ -116,5 +117,26 @@ void loop()
 
 	demand_speed_left = demandx - (demandz*temp);
 	demand_speed_right = demandx + (demandz*temp);
+	if(demandx > 0)
+	{
+		TIM3->CCR1 = 50;
+		TIM3->CCR2 = 50;
+		TIM3->CCR3 = 0;
+		TIM3->CCR4 = 0;
+	}
+	else if(demandx < 0)
+	{
+		TIM3->CCR1 = 0;
+        TIM3->CCR2 = 0;
+		TIM3->CCR3 = 50;
+		TIM3->CCR4 = 50;
+	}
+	else if (demandx == 0)
+	{
+		TIM3->CCR1 = 0;
+		TIM3->CCR2 = 0;
+		TIM3->CCR3 = 0;
+		TIM3->CCR4 = 0;
+	}
 	HAL_Delay(10);
 }
